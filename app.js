@@ -1,4 +1,5 @@
 const http = require('http')
+const fs = require('fs')
 
 const server = http.createServer((req, res) => {
   res.statusCode = 200
@@ -6,14 +7,23 @@ const server = http.createServer((req, res) => {
 
   switch (req.url) {
     case '/':
-      res.end('Home')
+      fs.readFile(__dirname + '/static/home.html', (err, data) => {
+        if (err) throw err
+        res.end(data)
+      })
       break
     case '/login':
-      res.end('Login')
+      fs.readFile(__dirname + '/static/login.html', (err, data) => {
+        if (err) throw err
+        res.end(data)
+      })
       break
     default:
-      res.statusCode = 404
-      res.end('Pagina nao encontrada')
+      fs.readFile(__dirname + '/static/not_found.html', (err, data) => {
+        if (err) throw err
+        res.statusCode = 404
+        res.end(data)
+      })
       break
   }
 })
