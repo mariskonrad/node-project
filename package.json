@@ -4,6 +4,7 @@
   "description": "Project to study node js.",
   "main": "app.js",
   "scripts": {
+    "dev": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/mariskonrad/node-project/issues"
   },
-  "homepage": "https://github.com/mariskonrad/node-project#readme"
+  "homepage": "https://github.com/mariskonrad/node-project#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
 }
