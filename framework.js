@@ -2,7 +2,6 @@ const http = require('http')
 
 module.exports = function framework() {
   const routes = {}
-
   const server = http.createServer((req, res) => {
     const { url, method } = req
 
