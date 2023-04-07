@@ -5,17 +5,11 @@ const framework = require('./framework')
 const app = framework()
 
 app.get('/', (req, res) => {
-  fs.readFile(__dirname + '/static/home.html', (err, data) => {
-    if (err) throw err
-    res.end(data)
-  })
+  res.render('home')
 })
 
 app.get('/login', (req, res) => {
-  fs.readFile(__dirname + '/static/login.html', (err, data) => {
-    if (err) throw err
-    res.end(data)
-  })
+  res.render('login')
 })
 
 app.post('/login', (req, res) => {

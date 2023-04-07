@@ -1,4 +1,5 @@
 const http = require('http')
+const fs = require('fs')
 
 module.exports = function framework() {
   const routes = {}
@@ -19,6 +20,21 @@ module.exports = function framework() {
       res.setHeader('Content-Type', 'text/html')
       res.end('<p>Method not allowed</p>')
       return
+    }
+
+    const viewCache = {}
+    res.render = fileName => {
+      if (fileName in viewCache) {
+        res.end(viewCache[fileName])
+        return
+      }
+
+      fs.readFile(__dirname + `/views/${fileName}.html`, (err, data) => {
+        if (err) throw err
+
+        viewCache[fileName] = data
+        res.end(data)
+      })
     }
 
     const handler = urlHandlers[method]
