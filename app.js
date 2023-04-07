@@ -4,18 +4,22 @@ const framework = require('./framework')
 
 const app = framework()
 
-app.register('/', (req, res) => {
+app.get('/', (req, res) => {
   fs.readFile(__dirname + '/static/home.html', (err, data) => {
     if (err) throw err
     res.end(data)
   })
 })
 
-app.register('/login', (req, res) => {
+app.get('/login', (req, res) => {
   fs.readFile(__dirname + '/static/login.html', (err, data) => {
     if (err) throw err
     res.end(data)
   })
+})
+
+app.post('/login', (req, res) => {
+  res.end()
 })
 
 const hostname = '0.0.0.0'
