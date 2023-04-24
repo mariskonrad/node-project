@@ -9,7 +9,6 @@ const sessions = {}
 const SESSION_ID = 'sessionId'
 
 app.get('/', (req, res) => {
-  // res.setHeader('Set-Cookie', `dog=toninho`)
   res.render('home')
 })
 
@@ -30,6 +29,7 @@ app.post('/login', (req, res) => {
 
     const username = params.get('username')
     const password = params.get('password')
+
     if (!(username in users) && !users[username] === password) {
       res.statusCode = 401
       res.render('login')
@@ -38,7 +38,9 @@ app.post('/login', (req, res) => {
     const uuid = uuidv4()
     sessions[uuid] = username
     res.setHeader('Set-Cookie', `sessionId=${uuid}`)
-    res.render('profile')
+    res.statusCode = 302
+    res.setHeader('Location', '/profile')
+    res.end()
   })
 })
 
@@ -55,7 +57,9 @@ app.post('/logout', (req, res) => {
   }
 
   res.setHeader('Set-Cookie', `sessionId=deleted; expires=Thu, 01 Jan 1970 00:00:00 GMT`)
-  res.render('home')
+  res.statusCode = 302
+  res.setHeader('Location', '/')
+  res.end()
 })
 
 const parseCookie = req => {
@@ -77,8 +81,9 @@ const validateAuth = (req, res) => {
     return false
   }
 
-  res.statusCode = 401
-  res.render('login')
+  res.statusCode = 302
+  res.setHeader('Location', '/login')
+  res.end()
   return true
 }
 
