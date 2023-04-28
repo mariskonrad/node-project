@@ -37,16 +37,28 @@ module.exports = function framework() {
       })
     }
 
-    const handler = urlHandlers[method]
-    handler(req, res)
+    const handlers = urlHandlers[method]
+    let i = 0
+    const runHandler = () => {
+      let callNext = false
+      handlers[i](req, res, () => {
+        callNext = true
+      })
+      i++
+
+      if (callNext) {
+        runHandler()
+      }
+    }
+    runHandler()
   })
 
   const app = {
-    get: (route, handler) => {
-      routes[route] = { ...routes[route], GET: handler }
+    get: (route, ...handlers) => {
+      routes[route] = { ...routes[route], GET: handlers }
     },
-    post: (route, handler) => {
-      routes[route] = { ...routes[route], POST: handler }
+    post: (route, ...handlers) => {
+      routes[route] = { ...routes[route], POST: handlers }
     },
     listen: (port, hostname, callback) => {
       server.listen(port, hostname, callback)
