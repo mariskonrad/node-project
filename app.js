@@ -8,15 +8,16 @@ const users = require('./db/users')
 const SESSION_ID = 'sessionId'
 const sessions = {}
 
+app.set('view engine', 'pug')
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 
 app.get('/', (req, res) => {
-  res.sendFile('views/home.html', { root: __dirname })
+  res.render('home')
 })
 
 app.get('/login', (req, res) => {
-  res.sendFile('views/login.html', { root: __dirname })
+  res.render('login')
 })
 
 const validateAuthMiddleware = (req, res, next) => {
@@ -25,13 +26,12 @@ const validateAuthMiddleware = (req, res, next) => {
     return
   }
 
-  res.statusCode = 302
-  res.setHeader('Location', '/login')
+  res.redirect(302, '/login')
   res.end()
 }
 
 app.get('/profile', validateAuthMiddleware, (req, res) => {
-  res.sendFile('views/profile.html', { root: __dirname })
+  res.render('profile')
 })
 
 app.post('/login', (req, res) => {
@@ -39,23 +39,20 @@ app.post('/login', (req, res) => {
   const password = req.body.password
 
   if (!(username in users) && !users[username] === password) {
-    res.statusCode = 401
-    res.render('login')
+    res.redirect(401, '/login')
     return
   }
 
   const uuid = uuidv4()
   sessions[uuid] = username
-  res.setHeader('Set-Cookie', `${SESSION_ID}=${uuid}`)
-  res.statusCode = 302
-  res.setHeader('Location', '/profile')
+  res.cookie(SESSION_ID, uuid)
+  res.redirect(302, '/profile')
   res.end()
 })
 
 app.post('/logout', validateAuthMiddleware, (req, res) => {
-  res.setHeader('Set-Cookie', `${SESSION_ID}=deleted; expires=Thu, 01 Jan 1970 00:00:00 GMT`)
-  res.statusCode = 302
-  res.setHeader('Location', '/')
+  res.clearCookie(SESSION_ID)
+  res.redirect(302, '/')
   res.end()
 })
 
