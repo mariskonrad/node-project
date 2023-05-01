@@ -1,9 +1,9 @@
-const framework = require('./framework')
+const express = require('express')
 
-const appAdmin = framework()
+const appAdmin = express()
 
 appAdmin.get('/', (req, res) => {
-  res.render('admin')
+  res.sendFile('views/admin.html', { root: __dirname })
 })
 
 module.exports = appAdmin

@@ -1,44 +1,23 @@
+const express = require('express')
+const cookieParser = require('cookie-parser')
 const { v4: uuidv4 } = require('uuid')
 
-const framework = require('./framework')
+const app = express()
+
 const users = require('./db/users')
-
-const app = framework()
-
 const SESSION_ID = 'sessionId'
-
 const sessions = {}
 
-const cookieParserMiddleware = (req, res, next) => {
-  const parseCookie = req => {
-    const cookies = req.headers.cookie
+app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
 
-    return (
-      cookies?.split('; ').reduce((acc, curr) => {
-        currSplitted = curr.split('=')
-        acc[currSplitted[0]] = currSplitted[1]
-        return acc
-      }, {}) ?? {}
-    )
-  }
+app.get('/', (req, res) => {
+  res.sendFile('views/home.html', { root: __dirname })
+})
 
-  req.cookies = parseCookie(req)
-  next()
-}
-
-const bodyParserMiddleware = (req, res, next) => {
-  const buffer = []
-
-  req.on('data', chunk => {
-    buffer.push(chunk)
-  })
-
-  req.on('end', () => {
-    const body = Buffer.concat(buffer).toString()
-    req.body = new URLSearchParams(body)
-    next()
-  })
-}
+app.get('/login', (req, res) => {
+  res.sendFile('views/login.html', { root: __dirname })
+})
 
 const validateAuthMiddleware = (req, res, next) => {
   if (SESSION_ID in req.cookies && req.cookies[SESSION_ID] in sessions) {
@@ -51,17 +30,13 @@ const validateAuthMiddleware = (req, res, next) => {
   res.end()
 }
 
-app.get('/', (req, res) => {
-  res.render('home')
+app.get('/profile', validateAuthMiddleware, (req, res) => {
+  res.sendFile('views/profile.html', { root: __dirname })
 })
 
-app.get('/login', (req, res) => {
-  res.render('login')
-})
-
-app.post('/login', bodyParserMiddleware, (req, res) => {
-  const username = req.body.get('username')
-  const password = req.body.get('password')
+app.post('/login', (req, res) => {
+  const username = req.body.username
+  const password = req.body.password
 
   if (!(username in users) && !users[username] === password) {
     res.statusCode = 401
@@ -77,11 +52,7 @@ app.post('/login', bodyParserMiddleware, (req, res) => {
   res.end()
 })
 
-app.get('/profile', cookieParserMiddleware, validateAuthMiddleware, (req, res) => {
-  res.render('profile')
-})
-
-app.post('/logout', cookieParserMiddleware, validateAuthMiddleware, (req, res) => {
+app.post('/logout', validateAuthMiddleware, (req, res) => {
   res.setHeader('Set-Cookie', `${SESSION_ID}=deleted; expires=Thu, 01 Jan 1970 00:00:00 GMT`)
   res.statusCode = 302
   res.setHeader('Location', '/')
