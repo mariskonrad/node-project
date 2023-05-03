@@ -1,6 +1,7 @@
 const express = require('express')
 const cookieParser = require('cookie-parser')
 const { v4: uuidv4 } = require('uuid')
+const morgan = require('morgan')
 
 const app = express()
 
@@ -11,6 +12,7 @@ const sessions = {}
 app.set('view engine', 'pug')
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
+app.use(morgan('combined'))
 
 app.get('/', (req, res) => {
   res.render('home')
