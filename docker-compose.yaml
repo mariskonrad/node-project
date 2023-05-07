@@ -17,3 +17,9 @@ services:
       - "3001:3000"
     volumes:
       - .:/app
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+    - "80:80"
