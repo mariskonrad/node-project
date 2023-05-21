@@ -2,12 +2,17 @@ const express = require('express')
 const cookieParser = require('cookie-parser')
 const { v4: uuidv4 } = require('uuid')
 const morgan = require('morgan')
+const Redis = require('ioredis')
 
 const app = express()
+const redis = new Redis({
+  port: 6379,
+  host: 'redis',
+})
 
 const users = require('./db/users')
+
 const SESSION_ID = 'sessionId'
-const sessions = {}
 
 app.set('view engine', 'pug')
 app.use(express.urlencoded({ extended: true }))
@@ -23,13 +28,21 @@ app.get('/login', (req, res) => {
 })
 
 const validateAuthMiddleware = (req, res, next) => {
-  if (SESSION_ID in req.cookies && req.cookies[SESSION_ID] in sessions) {
-    next()
+  if (!(SESSION_ID in req.cookies)) {
+    res.redirect(302, '/login')
+    res.end()
     return
   }
 
-  res.redirect(302, '/login')
-  res.end()
+  redis.get(req.cookies[SESSION_ID])
+    .then((result) => {
+      if (result) {
+        next()
+        return
+      }
+      res.redirect(302, '/login')
+      res.end()
+    })
 }
 
 app.get('/profile', validateAuthMiddleware, (req, res) => {
@@ -37,8 +50,8 @@ app.get('/profile', validateAuthMiddleware, (req, res) => {
 })
 
 app.post('/login', (req, res) => {
-  const username = req.body.username
-  const password = req.body.password
+  const { username } = req.body
+  const { password } = req.body
 
   if (!(username in users) && !users[username] === password) {
     res.redirect(401, '/login')
@@ -46,16 +59,22 @@ app.post('/login', (req, res) => {
   }
 
   const uuid = uuidv4()
-  sessions[uuid] = username
-  res.cookie(SESSION_ID, uuid)
-  res.redirect(302, '/profile')
-  res.end()
+
+  redis.set(uuid, username)
+    .then(() => {
+      res.cookie(SESSION_ID, uuid)
+      res.redirect(302, '/profile')
+      res.end()
+    })
 })
 
 app.post('/logout', validateAuthMiddleware, (req, res) => {
-  res.clearCookie(SESSION_ID)
-  res.redirect(302, '/')
-  res.end()
+  redis.del(req.cookies[SESSION_ID])
+    .then(() => {
+      res.clearCookie(SESSION_ID)
+      res.redirect(302, '/')
+      res.end()
+    })
 })
 
 module.exports = app

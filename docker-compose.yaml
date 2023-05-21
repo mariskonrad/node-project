@@ -5,16 +5,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.app
-    ports:
-      - "3000:3000"
     volumes:
       - .:/app
   app-2:
     build:
       context: .
       dockerfile: Dockerfile.app
-    ports:
-      - "3001:3000"
     volumes:
       - .:/app
   nginx:
@@ -23,3 +19,5 @@ services:
       dockerfile: Dockerfile.nginx
     ports:
     - "80:80"
+  redis:
+    image: redis
